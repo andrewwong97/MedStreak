@@ -20,8 +20,8 @@ class User(Resource):
             return dumps(db.users.find())
 
     def post(self, id=None):
-        #login with username/password
-        pass
+        #login with username/password, return id
+        return dumps(db.users.find())
 
     def put(self, id=None):
         #signup with user information
