@@ -10,21 +10,14 @@ client = MongoClient(
 db = client['medstreak-dev']
 
 
-class users(Resource):
+class User(Resource):
     def get(self, user_id=None):
         if user_id:
-            return dumps(db.users.find({ '_id.$oid': user_id }))
-        users = db.users.find()
-        return dumps(users)
-
-class User(Resource):
-    def get(self, id=None):
-        if not id == None:
-            #return user information
+            # return user information
             pass
         else:
-            #return user id
-            pass
+            # return all users
+            return dumps(db.users.find())
 
     def post(self, id=None):
         #login with username/password
@@ -34,9 +27,6 @@ class User(Resource):
         #signup with user information
         pass
 
-    def patch(self, id=None)
-
-
-api.add_resource(User, '/user', '/user/<id>')
 
 class Medication(Resource):
+    pass
