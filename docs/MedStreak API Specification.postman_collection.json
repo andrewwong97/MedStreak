@@ -75,7 +75,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"description": "The server finds the User matching the `id`. The server returns the user information as a JSON object:\n\n```\n{\n\t\"first_name\": \"John\", \n\t\"last_name\": \"Doe\", \n\t\"email\": \"jdoe1.@jhu.edu\", \n\t\"password\": \"password\", \n\t\"type\": \"patient\",\n\t\"points\": \"num_points\",\n\t\"streak\": \"num_streaks\",\n\t\"medications\": \"[id1, id2, id3]\",\n\t\"friends\": \"[id1, id2, id3]\"\n}\n```"
 		},
 		{
 			"name": "Update Account Information",
@@ -99,7 +100,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"description": "Modifies the account information of the User identified by `id` to match the provided information.\n\nThe new account information if provided in the HTTP Request Body as a JSON object:\n\n```\n{\n\t\"first_name\": \"John\", \n\t\"last_name\": \"Doe\", \n\t\"email\": \"jdoe1.@jhu.edu\", \n\t\"password\": \"password\", \n\t\"type\": \"patient\",\n\t\"medications\": \"[id1, id2, id3]\",\n\t\"friends\": \"[id1, id2, id3]\"\n}\n```"
 		}
 	]
 }
