@@ -1,24 +1,11 @@
 from flask import Flask
 from flask_restful import Resource, Api
-from pymongo import MongoClient
-from bson.json_util import dumps
+import resources
 
-client = MongoClient(
-    'mongodb://medstreak:medstreak@medstreak-dev-shard-00-00-8ghe7.mongodb.net:27017,medstreak-dev-shard-00-01-8ghe7.mongodb.net:27017,medstreak-dev-shard-00-02-8ghe7.mongodb.net:27017/medstreak-dev?ssl=true&replicaSet=MedStreak-Dev-shard-0&authSource=admin&retryWrites=true')
 app = Flask(__name__)
 api = Api(app)
-db = client['medstreak-dev']
 
-
-class users(Resource):
-    def get(self, user_id=None):
-        if user_id:
-            return dumps(db.users.find({ '_id.$oid': user_id }))
-        users = db.users.find()
-        return dumps(users)
-
-
-api.add_resource(users, '/users', '/users/<string:user_id>')
+api.add_resource(resources.users, '/users', '/users/<string:user_id>')
 
 if __name__ == '__main__':
     app.run(debug=True)
