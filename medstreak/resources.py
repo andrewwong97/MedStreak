@@ -207,7 +207,7 @@ class Medication(Resource):
     def put(self, user_id=None):
         """
         Update adherence table/schedule/instruction for a medication
-        PUT /api/medications/{med id}
+        PUT /api/med/{med id}
         """
         med_id = user_id
         if not med_id:
@@ -247,6 +247,31 @@ class Medication(Resource):
             return _serialize(db.medications.find_one({'_id': ObjectId(med_id)}))
         else:
             return {'reason': 'db failed to update user object'}, 500
+
+    def delete(self, user_id=None):
+        """
+        Remove medication from patients medication list
+        DELETE /api/med/{user id}
+        """
+        if not user_id:
+            return {'reason': 'Invalid user'}, 404
+        db = getDB()
+        data = request.get_json(force=True)
+        if 'med_id' not in data:
+            return {'reason': 'No med id provided'}, 404
+        med_id = data['med_id']
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        if not user:
+            return {'reason': 'Invalid user id'}, 404
+        medications = user['medications']
+        if ObjectId(med_id) in medications:
+            medications = medications.remove(ObjectId(med_id))
+        # if not medications:
+        #     medications = []
+        db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'medications': medications}})
+        db.medications.delete_one({'_id': ObjectId(med_id)})
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        return _serialize(user), 200
 
 class Friends(Resource):
     def get(self, user_id=None):
