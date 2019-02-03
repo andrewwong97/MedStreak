@@ -356,3 +356,32 @@ class Friends(Resource):
                 return {'reason': 'user not found'}, 500
         else:
             return {'reason': 'user id required to add friends'}, 404
+
+class UpdateMedication(Resource):
+    def post(self, user_id=None, med_id=None):
+        db = getDB()
+        data = request.get_json(force=True)
+        event = data['event']
+        date = event['date']
+        delta = event['med_delta']
+        if not user_id:
+            return {'reason': 'No user id'}, 404
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        if not user:
+            return {'reason': 'Invalid user id'}, 404
+        if not med_id:
+            return {'reason': 'No medication id'}, 404
+        med = db.medications.find_one({'_id': ObjectId(med_id)})
+        if not med:
+            return {'reason': 'Invalid med id'}, 404
+        adherence = med['adherence']
+        taken = adherence[date][0]
+        needed = adherence[date][1]
+        taken += delta
+        adherence[date] = (taken, needed)
+        updated = db.medications.update_one({'_id': ObjectId(med_id)}, {'$set': {'adherence': adherence}})
+        if updated:
+            med = db.medications.find_one({'_id': ObjectId(med_id)})
+            return _serialize(med)
+        else:
+            return {'reason': 'Unable to update adherence'}
