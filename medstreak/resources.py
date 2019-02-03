@@ -322,9 +322,37 @@ class Friends(Resource):
         else:
             return {'reason': 'user id required to add friends'}, 404
 
-    def delete(self, user_id=None, friend_user_id=None):
+    def delete(self, user_id=None):
         """
         Remove user from friend's network and friend from user's network
-        DELETE /api/user/{user id}/friends/{friend user id}
+        DELETE /api/user/{user id}/friends - { friends: List<UserId> }
         """
-        pass
+        db = getDB()
+        data = request.get_json(force=True)
+        if user_id:
+            user = db.users.find_one({'_id': ObjectId(user_id)})
+            if user and 'friends' in data:
+                # remove friends
+                user_friends = set(user['friends'])
+                deleted_friends = set([])
+                for f in data['friends']:
+                    find_friend = db.users.find_one({'_id': ObjectId(f)})
+                    if find_friend and f != user_id:
+                        # remove friend from user friend set
+                        user_friends.remove(f)
+                        deleted_friends.add(f)
+                        # remove user from friend's friend set
+                        f_friends = set(find_friend['friends']) - {user_id}
+                        db.users.update_one({'_id': ObjectId(f)}, {'$set': {'friends': list(f_friends)}})
+                db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'friends': list(user_friends)}})
+
+                removed_friends = []
+                for f_id in deleted_friends:
+                    u = db.users.find_one({'_id': ObjectId(f_id)})
+                    if u:
+                        removed_friends.append(_serialize(u))
+                return {'friends': removed_friends}
+            else:
+                return {'reason': 'user not found'}, 500
+        else:
+            return {'reason': 'user id required to add friends'}, 404
