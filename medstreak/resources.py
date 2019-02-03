@@ -158,22 +158,20 @@ class Medication(Resource):
         if not user_id:
             return {'reason': 'Invalid user'}, 404
         db = getDB()
-        data = request.get_json()
+        data = request.get_json(force=True)
         med_name = data['name']
         med_instr = data['instructions']
         schedule = data['schedule']
         adherence = data['adherence']
-        med_id = uuid.uuid4()
         medication = {
-            'med_id': med_id,
-            'med_name': med_name,
-            'med_instr': med_instr,
+            'name': med_name,
+            'instructions': med_instr,
             'schedule': schedule,
             'adherence': adherence
         }
         response = db.medications.insert_one(medication)
         if response.acknowledged:
-            return medication, 200
+            return _serialize(medication), 200
         else:
             return {'reason': 'Invalid data'}, 404
 
@@ -185,12 +183,12 @@ class Medication(Resource):
         if not med_id:
             return {'reason': 'Med_id not provided'}, 404
         db = getDB()
-        data = request.get_json()
+        data = request.get_json(force=True)
         adherence = data['adherence']
         medication = db.medications.find_one_and_update({'med_id': med_id}, {'$set': {'adherence': adherence}})
         if not medication:
             return {'reason': 'Invalid med id'}, 400
-        return medication, 200
+        return _serialize(medication), 200
 
 class Friends(Resource):
     def get(self, user_id=None):
@@ -201,7 +199,7 @@ class Friends(Resource):
         if not user_id:
             return {'reason': 'Invalid user'}, 404
         db = getDB()
-        data = request.get_json()
+        data = request.get_json(force=True)
 
 
     def post(self, user_id=None):
