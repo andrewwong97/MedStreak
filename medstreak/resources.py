@@ -147,7 +147,7 @@ class User(Resource):
         }, {'$set': updated_user})
 
         if updated.acknowledged:
-            return dumps(_serialize(db.users.find_one({'_id': ObjectId(user_id)})))
+            return _serialize(db.users.find_one({'_id': ObjectId(user_id)}))
         else:
             return {'reason': 'db failed to update user object'}, 500
 
@@ -195,6 +195,21 @@ class Medication(Resource):
 
 
 class Friends(Resource):
+    def get(self, user_id=None):
+        db = getDB()
+        if user_id:
+            result = []
+            user = db.users.find_one({'_id': ObjectId(user_id)})
+            if user:
+                user_friends = user['friends']
+                for f_id in user_friends:
+                    u = db.users.find_one({'_id': ObjectId(f_id)})
+                    if u:
+                        result.append(_serialize(u))
+            return {'friends': result}
+        else:
+            return {'reason': 'user id required to add friends'}, 404
+
     def post(self, user_id=None):
         """
         Add one or more friends to a user's network, also add the user to each friend's network
