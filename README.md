@@ -13,12 +13,3 @@ Using Python 2.7
 
 Flask-Restful to parse and return structured requests and responses using REST.
 Flask-Mongoengine to act as an ORM between MongoDB and Flask controllers. 
-
-## MongoDB Connection Settings
-
-```python
-app.config['MONGODB_SETTINGS'] = {
-    'db': 'MedStreak-Dev',
-    'host': 'mongodb://medstreak:medstreak@medstreak-dev-shard-00-00-8ghe7.mongodb.net:27017,medstreak-dev-shard-00-01-8ghe7.mongodb.net:27017,medstreak-dev-shard-00-02-8ghe7.mongodb.net:27017/test?ssl=true&replicaSet=MedStreak-Dev-shard-0&authSource=admin&retryWrites=true'
-}
-```
