@@ -8,6 +8,7 @@ import bcrypt
 class Login(Resource):
     def post(self, id=None):
         #login with email/password, return id
+        db = getDB()
         data = request.get_json()
         email = data['email']
         password = data['password']
@@ -29,13 +30,17 @@ class User(Resource):
         db = getDB()
         if user_id:
             # return user information
-            pass
+            user = db.users.find_one({'user_id': user_id})
+            if not user:
+                return { 'reason': 'User not found' }, 404
+            return dumps(user)
         else:
             # return all users
             return dumps(db.users.find())
 
     def put(self, id=None):
         #signup with user information
+        db = getDB()
         data = request.get_json()
         first_name = data['first_name']
         last_name = data['last_name']
