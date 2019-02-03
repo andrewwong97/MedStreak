@@ -1,4 +1,7 @@
-# MedStreak
+# MedStreak 
+
+![logo-60 3x](https://user-images.githubusercontent.com/7339169/52180235-b91eaa00-27b1-11e9-83d8-018105195243.png)
+
 
 ## Setup
 
