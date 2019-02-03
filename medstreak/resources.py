@@ -30,7 +30,7 @@ class User(Resource):
         db = getDB()
         if user_id:
             # return user information
-            user = db.users.find_one({'user_id': user_id})
+            user = db.users.find_one({'user_id': user_id}, {'password': 0, 'salt': 0})
             if not user:
                 return { 'reason': 'User not found' }, 404
             return dumps(user)
@@ -70,7 +70,6 @@ class User(Resource):
             return new_user, 200
         else:
             return { 'reason': 'invalid data' }, 404
-
 
 class Medication(Resource):
     pass
