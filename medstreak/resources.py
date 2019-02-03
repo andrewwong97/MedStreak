@@ -1,6 +1,5 @@
 from flask import Flask, request
 from flask_restful import Resource
-from bson.json_util import dumps
 from bson.objectid import ObjectId
 from database import getDB
 import hashlib
@@ -63,7 +62,7 @@ class User(Resource):
         else:
             # return all users
             user_list = [_serialize(u) for u in db.users.find()]
-            return dumps(user_list)
+            return user_list
 
     def post(self):
         # signup with user information
@@ -102,7 +101,7 @@ class User(Resource):
         }
         response = db.users.insert_one(new_user)
         if response.acknowledged:
-            return dumps(_serialize(new_user)), 200
+            return _serialize(new_user), 200
         else:
             return {'reason': 'Invalid data'}, 404
 
