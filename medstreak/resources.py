@@ -74,7 +74,7 @@ class User(Resource):
         email = data['email']
         find_user = db.users.find_one({'email': email})
         if find_user:
-            return {'reason': 'account already exists'}, 404
+            return {'reason': 'account already exists', 'user': _serialize(find_user)}, 404
         password = data['password']
         salt = bcrypt.gensalt()
         pw = hashlib.sha256(password + salt).hexdigest()
@@ -98,7 +98,7 @@ class User(Resource):
         }
         response = db.users.insert_one(new_user)
         if response.acknowledged:
-            return dumps(new_user), 200
+            return dumps(_serialize(new_user)), 200
         else:
             return {'reason': 'Invalid data'}, 404
 
@@ -148,11 +148,10 @@ class User(Resource):
             return {'reason': 'db failed to update user object'}, 500
 
 
-
 class Medication(Resource):
     def post(self, user_id=None):
         """
-        Create medication and add it to a user’s list of medications
+        Create medication and add it to a user's list of medications
         POST  /api/medications/{user id}
         """
         if not user_id:
@@ -190,6 +189,7 @@ class Medication(Resource):
             return {'reason': 'Invalid med id'}, 400
         return _serialize(medication), 200
 
+
 class Friends(Resource):
     def get(self, user_id=None):
         """
@@ -204,14 +204,14 @@ class Friends(Resource):
 
     def post(self, user_id=None):
         """
-        Add one or more friends to a user’s network, also add the user to each friend’s network
+        Add one or more friends to a user's network, also add the user to each friend's network
         POST /api/user/{user id}/friends
         """
         pass
 
     def delete(self, user_id=None, friend_user_id=None):
         """
-        Remove user from friend’s network and friend from user’s network
+        Remove user from friend's network and friend from user's network
         DELETE /api/user/{user id}/friends/{friend user id}
         """
         pass
