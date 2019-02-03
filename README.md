@@ -12,4 +12,4 @@ Using Python 2.7
 ## Stack
 
 Flask-Restful to parse and return structured requests and responses using REST.
-Flask-Mongoengine to act as an ORM between MongoDB and Flask controllers. 
+Pymongo as Mongo driver for any db requests
