@@ -5,14 +5,18 @@ from bson.objectid import ObjectId
 from database import getDB
 import hashlib
 import bcrypt
-import uuid
 
 
 def _serialize(obj):
-    for field in obj:
+    new_obj = obj
+    for field, value in new_obj.items():
         if field == '_id':
-            obj['_id'] = str(obj['_id'])
-    return obj
+            new_obj['_id'] = str(new_obj['_id'])
+        elif field == 'salt':
+            del new_obj['salt']
+        elif field == 'password':
+            del new_obj['password']
+    return new_obj
 
 
 class Login(Resource):
@@ -191,23 +195,38 @@ class Medication(Resource):
 
 
 class Friends(Resource):
-    def get(self, user_id=None):
-        """
-        Get a list of users friends
-        GET /api/user/{user id}/friends
-        """
-        if not user_id:
-            return {'reason': 'Invalid user'}, 404
-        db = getDB()
-        data = request.get_json(force=True)
-
-
     def post(self, user_id=None):
         """
         Add one or more friends to a user's network, also add the user to each friend's network
-        POST /api/user/{user id}/friends
+        POST /api/user/{user id}/friends - { friends: List<UserId> }
         """
-        pass
+        db = getDB()
+        data = request.get_json(force=True)
+        if user_id:
+            user = db.users.find_one({'_id': ObjectId(user_id)})
+            if user and 'friends' in data:
+                # add friends
+                user_friends = set(user['friends'])
+                for f in data['friends']:
+                    find_friend = db.users.find_one({'_id': ObjectId(f)})
+                    if find_friend:
+                        # add friend to user friend set
+                        user_friends.add(f)
+                        # add user to friend's friend set
+                        f_friends = set(find_friend['friends']) | {user_id}
+                        db.users.update_one({'_id': ObjectId(f)}, {'$set': {'friends': list(f_friends)}})
+                db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'friends': list(user_friends)}})
+
+                added_friends = []
+                for f_id in user_friends:
+                    u = db.users.find_one({'_id': ObjectId(f_id)})
+                    if u:
+                        added_friends.append(_serialize(u))
+                return {'friends': added_friends}
+            else:
+                return {'reason': 'user not found'}, 500
+        else:
+            return {'reason': 'user id required to add friends'}, 404
 
     def delete(self, user_id=None, friend_user_id=None):
         """
