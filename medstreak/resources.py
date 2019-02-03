@@ -21,7 +21,7 @@ class Login(Resource):
         if not stored_pw:
             return { 'reason': 'Email not registered' }, 404
         if encrypted_pw == stored_pw:
-            return dumps(db.users.find({'email': email, 'password': encrypted_pw}, {'user_id': 1}))
+            return dumps(db.users.find_one({'email': email, 'password': encrypted_pw}, {'user_id': 1}))
         else:
             return { 'reason': 'Invalid password' }, 404
 
