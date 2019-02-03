@@ -159,11 +159,12 @@ class User(Resource):
 
 
 class Medication(Resource):
-    def get(self, med_id=None):
+    def get(self, user_id=None):
         """
         Get medication and usage information
         GET  /api/med/{med id}
         """
+        med_id = user_id
         if not med_id:
             return {'reason': 'Med_id not provided'}, 404
         db = getDB()
@@ -365,6 +366,7 @@ class Event(Resource):
         event = data['event']
         date = event['date']
         delta = event['med_delta']
+        needed = event['med_total']
         if not user_id:
             return {'reason': 'No user id'}, 404
         user = db.users.find_one({'_id': ObjectId(user_id)})
@@ -376,10 +378,13 @@ class Event(Resource):
         if not med:
             return {'reason': 'Invalid med id'}, 404
         adherence = med['adherence']
-        taken = adherence[date][0]
-        needed = adherence[date][1]
-        taken += delta
-        adherence[date] = (taken, needed)
+        if date in adherence.keys():
+            taken = adherence[date][0]
+            needed = adherence[date][1]
+            taken += delta
+            adherence[date] = (taken, needed)
+        else:
+            adherence[date] = [delta, needed]
         updated = db.medications.update_one({'_id': ObjectId(med_id)}, {'$set': {'adherence': adherence}})
         if updated:
             med = db.medications.find_one({'_id': ObjectId(med_id)})
