@@ -1,12 +1,12 @@
 {
 	"info": {
-		"_postman_id": "4f0a1e69-d07a-4133-8f9d-1f64f85bbb6d",
+		"_postman_id": "35650bea-9fa4-4071-b64b-b09e47d16962",
 		"name": "MedStreak API Specification",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Login",
+			"name": "User/Login",
 			"item": [
 				{
 					"name": "Successful",
@@ -25,39 +25,9 @@
 						}
 					},
 					"response": []
-				}
-			],
-			"description": "Called when the user clicks on *Login*. First, the server finds the User with the specified login information and finds the corresponding `id`, for the User (Java includes a class for generating UUIDs). The server returns the `id` as plain text.\n\nThe client holds on to the `id` and provides it in subsequent requests."
-		},
-		{
-			"name": "Sign Up",
-			"item": [
+				},
 				{
-					"name": "Successful",
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "/user",
-							"path": [
-								"user"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"description": "Called when the user clicks on **Sign Up**. The server creates a new User and stores the account information in the database. The account information is passed as a JSON object: `{\"first_name\": \"John\", \"last_name\": \"Doe\", \"email\": \"jdoe1.@jhu.edu\", \"password\": \"password\", \"type\": \"patient\", \"medications\": \"[id1, id2, id3]\"}`"
-		},
-		{
-			"name": "Get User",
-			"item": [
-				{
-					"name": "Successful",
+					"name": "Get user by id",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -66,42 +36,246 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "/user/{{id}}",
+							"raw": "http://127.0.0.1:5000/api/user/5c5683b36ea3a67c56cb48b2",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
 							"path": [
+								"api",
 								"user",
-								"{{id}}"
+								"5c5683b36ea3a67c56cb48b2"
 							]
 						}
 					},
 					"response": []
-				}
-			],
-			"description": "The server finds the User matching the `id`. The server returns the user information as a JSON object:\n\n```\n{\n\t\"first_name\": \"John\", \n\t\"last_name\": \"Doe\", \n\t\"email\": \"jdoe1.@jhu.edu\", \n\t\"password\": \"password\", \n\t\"type\": \"patient\",\n\t\"points\": \"num_points\",\n\t\"streak\": \"num_streaks\",\n\t\"medications\": \"[id1, id2, id3]\",\n\t\"friends\": \"[id1, id2, id3]\"\n}\n```"
-		},
-		{
-			"name": "Update Account Information",
-			"item": [
+				},
 				{
-					"name": "Successful",
+					"name": "Get all users",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
-						"method": "PUT",
-						"header": [],
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{ \"first_name\": \"Andrew\", \"last_name\": \"Wong\", \"email\": \"wongandrew97@gmail.com\", \"password\": \"hi\", \"type\": \"patient\" }"
 						},
 						"url": {
-							"raw": "/user/{{id}}",
+							"raw": "http://127.0.0.1:5000/api/user",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
 							"path": [
+								"api",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login as wongandrew97",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"wongandrew97@gmail.com\", \"password\": \"hi\" }"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/login",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User update name",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"first_name\": \"Not Andrew\", \"last_name\": \"Not Wong\" }"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/user/5c5683b36ea3a67c56cb48b2",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
 								"user",
-								"{{id}}"
+								"5c5683b36ea3a67c56cb48b2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a user",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"first_name\": \"Kevin\", \"last_name\": \"Peng\", \"email\": \"kpeng7@jhu.edu\", \"password\": \"hi\", \"type\": \"physician\" }"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/user",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"user"
 							]
 						}
 					},
 					"response": []
 				}
 			],
-			"description": "Modifies the account information of the User identified by `id` to match the provided information.\n\nThe new account information if provided in the HTTP Request Body as a JSON object:\n\n```\n{\n\t\"first_name\": \"John\", \n\t\"last_name\": \"Doe\", \n\t\"email\": \"jdoe1.@jhu.edu\", \n\t\"password\": \"password\", \n\t\"type\": \"patient\",\n\t\"medications\": \"[id1, id2, id3]\",\n\t\"friends\": \"[id1, id2, id3]\"\n}\n```"
+			"description": "Called when the user clicks on *Login*. First, the server finds the User with the specified login information and finds the corresponding `id`, for the User (Java includes a class for generating UUIDs). The server returns the `id` as plain text.\n\nThe client holds on to the `id` and provides it in subsequent requests."
+		},
+		{
+			"name": "Friends",
+			"item": [
+				{
+					"name": "Get friends",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"friends\": "
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/user/5c5695456ea3a6842ddaa7cf/friends",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"user",
+								"5c5695456ea3a6842ddaa7cf",
+								"friends"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add friend",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"friends\": [\"5c5683b36ea3a67c56cb48b2\"] }"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/user/5c5695456ea3a6842ddaa7cf/friends",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"user",
+								"5c5695456ea3a6842ddaa7cf",
+								"friends"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

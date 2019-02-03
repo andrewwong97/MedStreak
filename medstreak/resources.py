@@ -159,12 +159,11 @@ class User(Resource):
 
 
 class Medication(Resource):
-    def get(self, user_id=None):
+    def get(self, med_id=None):
         """
         Get medication and usage information
-        GET  /api/med/{user id}
+        GET  /api/med/{med id}
         """
-        med_id = user_id
         if not med_id:
             return {'reason': 'Med_id not provided'}, 404
         db = getDB()
@@ -182,10 +181,11 @@ class Medication(Resource):
             return {'reason': 'Invalid user'}, 404
         db = getDB()
         data = request.get_json(force=True)
+        print data
         med_name = data['name']
         med_instr = data['instructions']
         schedule = data['schedule']
-        adherence = data['adherence']
+        adherence = {}
         medication = {
             'name': med_name,
             'instructions': med_instr,
@@ -197,16 +197,16 @@ class Medication(Resource):
             user = db.users.find_one({'_id': ObjectId(user_id)})
             if not user:
                 return {'reason': 'Invalid user'}, 404
-            user_meds = set(user['medications'])
-            user_meds.add(medication['_id'])
-            db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'medications': list(user_meds)}})
+            user_meds = user['medications']
+            user_meds.append(medication['_id'])
+            db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'medications': user_meds}})
             return _serialize(medication), 200
         else:
             return {'reason': 'Invalid data'}, 404
 
     def put(self, user_id=None):
         """
-        Update adherence table/schedule/instruction for a medication
+        Update a medication based on the fields that have changed
         PUT /api/med/{med id}
         """
         med_id = user_id
@@ -227,10 +227,9 @@ class Medication(Resource):
         adherence = existing['adherence']
         if 'adherence' in data:
             updated_adherence = existing['adherence']
-            new_adherences = data['adherence']
-            for key in new_adherences.keys():
-                updated_adherence[key] = new_adherences[key]
-            adherence = new_adherences
+            for datestr in data['adherence']:
+                updated_adherence[datestr] = data['adherence'][datestr]
+            adherence = updated_adherence
 
         updated_medication = {
             'instructions': instructions,
@@ -272,6 +271,7 @@ class Medication(Resource):
         db.medications.delete_one({'_id': ObjectId(med_id)})
         user = db.users.find_one({'_id': ObjectId(user_id)})
         return _serialize(user), 200
+
 
 class Friends(Resource):
     def get(self, user_id=None):
@@ -357,7 +357,8 @@ class Friends(Resource):
         else:
             return {'reason': 'user id required to add friends'}, 404
 
-class UpdateMedication(Resource):
+
+class Event(Resource):
     def post(self, user_id=None, med_id=None):
         db = getDB()
         data = request.get_json(force=True)
