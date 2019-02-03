@@ -1,29 +1,34 @@
-from flask import Flask
-from flask_restful import Resource, Api
+from flask import Flask, request
+from flask_restful import Resource
 from bson.json_util import dumps
 from database import getDB
 import hashlib
 import bcrypt
 
+
 class Login(Resource):
     def post(self, id=None):
-        #login with email/password, return id
+        """
+        Login with email/password, return user id on success
+        POST /api/login
+        """
         db = getDB()
         data = request.get_json()
         email = data['email']
         password = data['password']
         salt = db.users.find_one({'email': email}, {'salt': 1})
-        #check user exists
+        # check user exists
         if not salt:
-            return { 'reason': 'Email not registered' }, 404
-        encrypted_pw = encrypt_string(password + salt)
+            return {'reason': 'Email not registered'}, 404
+        encrypted_pw = hashlib.sha256(password + salt)
         stored_pw = db.users.find_one({'email': email}, {'password': 1})
         if not stored_pw:
-            return { 'reason': 'Email not registered' }, 404
+            return {'reason': 'Email not registered'}, 404
         if encrypted_pw == stored_pw:
             return dumps(db.users.find_one({'email': email, 'password': encrypted_pw}, {'user_id': 1}))
         else:
-            return { 'reason': 'Invalid password' }, 404
+            return {'reason': 'Invalid password'}, 404
+
 
 class User(Resource):
     def get(self, user_id=None):
@@ -32,14 +37,14 @@ class User(Resource):
             # return user information
             user = db.users.find_one({'user_id': user_id}, {'password': 0, 'salt': 0})
             if not user:
-                return { 'reason': 'User not found' }, 404
+                return {'reason': 'User not found'}, 404
             return dumps(user)
         else:
             # return all users
             return dumps(db.users.find())
 
-    def put(self, id=None):
-        #signup with user information
+    def post(self, id=None):
+        # signup with user information
         db = getDB()
         data = request.get_json()
         first_name = data['first_name']
@@ -47,7 +52,7 @@ class User(Resource):
         email = data['email']
         password = data['password']
         salt = bcrypt.gensalt()
-        pw = encrypt_string(password + salt)
+        pw = hashlib.sha256(password + salt)
         type = data['type']
         points = 0
         streak = 0
@@ -69,7 +74,8 @@ class User(Resource):
         if response.acknowledged:
             return new_user, 200
         else:
-            return { 'reason': 'invalid data' }, 404
+            return {'reason': 'invalid data'}, 404
+
 
 class Medication(Resource):
     pass
