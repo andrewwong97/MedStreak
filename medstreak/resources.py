@@ -1,9 +1,11 @@
+# coding=utf-8
 from flask import Flask, request
 from flask_restful import Resource
 from bson.objectid import ObjectId
 from database import getDB
 import hashlib
 import bcrypt
+import json
 
 
 def _serialize(obj):
@@ -15,6 +17,11 @@ def _serialize(obj):
             del new_obj['salt']
         elif field == 'password':
             del new_obj['password']
+        elif field == 'medications':
+            temp = []
+            for med in new_obj['medications']:
+                temp.append(str(med))
+            new_obj['medications'] = temp
     return new_obj
 
 
@@ -152,45 +159,118 @@ class User(Resource):
 
 
 class Medication(Resource):
+    def get(self, med_id=None):
+        """
+        Get medication and usage information
+        GET  /api/med/{med id}
+        """
+        if not med_id:
+            return {'reason': 'Med_id not provided'}, 404
+        db = getDB()
+        medication = db.medications.find_one({'_id': ObjectId(med_id)})
+        if not medication:
+            return {'reason': 'Invalid med id'}, 400
+        return _serialize(medication), 200
+
     def post(self, user_id=None):
         """
-        Create medication and add it to a user's list of medications
-        POST  /api/medications/{user id}
+        Create medication and add it to a user’s list of medications
+        POST  /api/med/{user id}
         """
         if not user_id:
             return {'reason': 'Invalid user'}, 404
         db = getDB()
         data = request.get_json(force=True)
+        print data
         med_name = data['name']
         med_instr = data['instructions']
         schedule = data['schedule']
-        adherence = data['adherence']
+        adherence = {}
         medication = {
             'name': med_name,
             'instructions': med_instr,
             'schedule': schedule,
-            'adherence': adherence
+            'adherence': adherence,
         }
         response = db.medications.insert_one(medication)
         if response.acknowledged:
+            user = db.users.find_one({'_id': ObjectId(user_id)})
+            if not user:
+                return {'reason': 'Invalid user'}, 404
+            user_meds = user['medications']
+            user_meds.append(medication['_id'])
+            db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'medications': user_meds}})
             return _serialize(medication), 200
         else:
             return {'reason': 'Invalid data'}, 404
 
-    def put(self, med_id=None):
+    def put(self, user_id=None):
         """
-        Update adherence table for a medication
-        PUT /api/medications/{med id}
+        Update a medication based on the fields that have changed
+        PUT /api/med/{med id}
         """
+        med_id = user_id
         if not med_id:
             return {'reason': 'Med_id not provided'}, 404
+
+        db = getDB()
+
+        existing = db.medications.find_one({'_id': ObjectId(med_id)})
+        if not existing:
+            return {'reason': 'Medication does not exist for id ' + med_id}, 404
+
+        data = request.get_json(force=True)
+
+        instructions = data['instructions'] if 'instructions' in data else existing['instructions']
+        schedule = data['schedule'] if 'schedule' in data else existing['schedule']
+        name = data['name'] if 'name' in data else existing['name']
+        adherence = existing['adherence']
+        if 'adherence' in data:
+            updated_adherence = existing['adherence']
+            for datestr in data['adherence']:
+                updated_adherence[datestr] = data['adherence'][datestr]
+            adherence = updated_adherence
+
+        updated_medication = {
+            'instructions': instructions,
+            'schedule': schedule,
+            'adherence': adherence,
+            'name': name,
+        }
+
+        updated = db.medications.update_one({
+            '_id': ObjectId(med_id)
+        }, {'$set': updated_medication})
+
+        if updated.acknowledged:
+            return _serialize(db.medications.find_one({'_id': ObjectId(med_id)}))
+        else:
+            return {'reason': 'db failed to update user object'}, 500
+
+    def delete(self, user_id=None):
+        """
+        Remove medication from patients medication list
+        DELETE /api/med/{user id}
+        """
+        if not user_id:
+            return {'reason': 'Invalid user'}, 404
         db = getDB()
         data = request.get_json(force=True)
-        adherence = data['adherence']
-        medication = db.medications.find_one_and_update({'med_id': med_id}, {'$set': {'adherence': adherence}})
-        if not medication:
-            return {'reason': 'Invalid med id'}, 400
-        return _serialize(medication), 200
+        if 'med_id' not in data:
+            return {'reason': 'No med id provided'}, 404
+        med_id = data['med_id']
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        if not user:
+            return {'reason': 'Invalid user id'}, 404
+        medications = user['medications']
+        if ObjectId(med_id) in medications:
+            medications = medications.remove(ObjectId(med_id))
+        # if not medications:
+        #     medications = []
+        db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'medications': medications}})
+        db.medications.delete_one({'_id': ObjectId(med_id)})
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        return _serialize(user), 200
 
 
 class Friends(Resource):
@@ -242,9 +322,67 @@ class Friends(Resource):
         else:
             return {'reason': 'user id required to add friends'}, 404
 
-    def delete(self, user_id=None, friend_user_id=None):
+    def delete(self, user_id=None):
         """
         Remove user from friend's network and friend from user's network
-        DELETE /api/user/{user id}/friends/{friend user id}
+        DELETE /api/user/{user id}/friends - { friends: List<UserId> }
         """
-        pass
+        db = getDB()
+        data = request.get_json(force=True)
+        if user_id:
+            user = db.users.find_one({'_id': ObjectId(user_id)})
+            if user and 'friends' in data:
+                # remove friends
+                user_friends = set(user['friends'])
+                deleted_friends = set([])
+                for f in data['friends']:
+                    find_friend = db.users.find_one({'_id': ObjectId(f)})
+                    if find_friend and f != user_id:
+                        # remove friend from user friend set
+                        user_friends.remove(f)
+                        deleted_friends.add(f)
+                        # remove user from friend's friend set
+                        f_friends = set(find_friend['friends']) - {user_id}
+                        db.users.update_one({'_id': ObjectId(f)}, {'$set': {'friends': list(f_friends)}})
+                db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'friends': list(user_friends)}})
+
+                removed_friends = []
+                for f_id in deleted_friends:
+                    u = db.users.find_one({'_id': ObjectId(f_id)})
+                    if u:
+                        removed_friends.append(_serialize(u))
+                return {'friends': removed_friends}
+            else:
+                return {'reason': 'user not found'}, 500
+        else:
+            return {'reason': 'user id required to add friends'}, 404
+
+
+class Event(Resource):
+    def post(self, user_id=None, med_id=None):
+        db = getDB()
+        data = request.get_json(force=True)
+        event = data['event']
+        date = event['date']
+        delta = event['med_delta']
+        if not user_id:
+            return {'reason': 'No user id'}, 404
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        if not user:
+            return {'reason': 'Invalid user id'}, 404
+        if not med_id:
+            return {'reason': 'No medication id'}, 404
+        med = db.medications.find_one({'_id': ObjectId(med_id)})
+        if not med:
+            return {'reason': 'Invalid med id'}, 404
+        adherence = med['adherence']
+        taken = adherence[date][0]
+        needed = adherence[date][1]
+        taken += delta
+        adherence[date] = (taken, needed)
+        updated = db.medications.update_one({'_id': ObjectId(med_id)}, {'$set': {'adherence': adherence}})
+        if updated:
+            med = db.medications.find_one({'_id': ObjectId(med_id)})
+            return _serialize(med)
+        else:
+            return {'reason': 'Unable to update adherence'}

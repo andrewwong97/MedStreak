@@ -66,10 +66,18 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "/user/{{id}}",
+							"raw": "http://127.0.0.1:5000/api/user",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
 							"path": [
-								"user",
-								"{{id}}"
+								"api",
+								"user"
 							]
 						}
 					},
@@ -84,17 +92,26 @@
 				{
 					"name": "Successful",
 					"request": {
-						"method": "PUT",
+						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "{\n\t\"name\": \"Aspirin\", \n\t\"instructions\": \"Take once a day after a meal\", \n\t\"schedule\": [[13, 0], [13, 0], [13, 0], [13, 0], [13, 0], [13, 0], [13, 0], [13, 0]], \n\t\"adherence\": {}\n}"
 						},
 						"url": {
-							"raw": "/user/{{id}}",
+							"raw": "http://127.0.0.1:5000/api/med/5c5683b36ea3a67c56cb48b2",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
 							"path": [
-								"user",
-								"{{id}}"
+								"api",
+								"med",
+								"5c5683b36ea3a67c56cb48b2"
 							]
 						}
 					},
@@ -102,6 +119,149 @@
 				}
 			],
 			"description": "Modifies the account information of the User identified by `id` to match the provided information.\n\nThe new account information if provided in the HTTP Request Body as a JSON object:\n\n```\n{\n\t\"first_name\": \"John\", \n\t\"last_name\": \"Doe\", \n\t\"email\": \"jdoe1.@jhu.edu\", \n\t\"password\": \"password\", \n\t\"type\": \"patient\",\n\t\"medications\": \"[id1, id2, id3]\",\n\t\"friends\": \"[id1, id2, id3]\"\n}\n```"
+		},
+		{
+			"name": "Modify adherence",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"adherence\": {\n\t\t\"2019-02-03\": [1, 1],\n\t\t\"2019-02-04\": [1, 2],\n\t\t\"2019-02-05\": [2, 1]\n\t},\n\t\"name\": \"Aspirin\"\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/med/5c56eaca459e910f584cfada",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"med",
+						"5c56eaca459e910f584cfada"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Medication",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/med/5c56eaca459e910f584cfada",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"med",
+						"5c56eaca459e910f584cfada"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete medication",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"med_id\": \"5c56c3b0459e91030adc2a1e\"}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/med/5c5683b36ea3a67c56cb48b2",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"med",
+						"5c5683b36ea3a67c56cb48b2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove friends",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"friends\": [\"5c5695456ea3a6842ddaa7cf\", \"5c56a6056ea3a68745705000\"]}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/user/5c5683b36ea3a67c56cb48b2/friends",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"user",
+						"5c5683b36ea3a67c56cb48b2",
+						"friends"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Medication",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ “event”: { “date”: “2019-01-01”, “med_delta”: 1, “med_total”: 2 } } "
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/med/5c5683b36ea3a67c56cb48b2/5c56eaca459e910f584cfada/event",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"med",
+						"5c5683b36ea3a67c56cb48b2",
+						"5c56eaca459e910f584cfada",
+						"event"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
