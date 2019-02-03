@@ -107,3 +107,4 @@ venv.bak/
 env/
 .DS_Store
 .idea/
+medstreak/config.json
