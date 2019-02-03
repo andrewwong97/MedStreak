@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_restful import Resource
 from bson.json_util import dumps
+from bson.objectid import ObjectId
 from database import getDB
 import hashlib
 import bcrypt
@@ -45,13 +46,13 @@ class User(Resource):
     def get(self, user_id=None):
         """
         With user id, return full user object
-        GET /api/users/<userid> - specific user
-        GET /api/users - all users
+        GET /api/user/<userid> - specific user
+        GET /api/user - all users
         """
         db = getDB()
         if user_id:
             # return user information
-            user = db.users.find_one({'user_id': user_id}, {'password': 0, 'salt': 0})
+            user = db.users.find_one({'_id': ObjectId(user_id)}, {'password': 0, 'salt': 0})
             if not user:
                 return {'reason': 'User not found'}, 404
             return _serialize(user)
@@ -62,6 +63,10 @@ class User(Resource):
 
     def post(self):
         # signup with user information
+        """
+        Signup with user information
+        POST /api/user - accept user dict with first_name, last_name, email, password, type
+        """
         db = getDB()
         data = request.get_json(force=True)
         first_name = data['first_name']
@@ -97,8 +102,52 @@ class User(Resource):
         else:
             return {'reason': 'Invalid data'}, 404
 
-    def put(self):
-        pass
+    def put(self, user_id=None):
+        """
+        Update with partial or full user information. Changes only the fields that differ between old and new user.
+        Does not update list fields, handled in other endpoints for managing code complexity between object relations.
+        PUT /api/user - accept user dict
+        """
+        db = getDB()
+        if not user_id:
+            return {'reason': 'user id required for updates'}, 404
+        existing = db.users.find_one({'_id': ObjectId(user_id)})
+        if not existing:
+            return {'reason': 'user does not exist for id ' + user_id}, 404
+
+        data = request.get_json(force=True)
+
+        first_name = data['first_name'] if 'first_name' in data else existing['first_name']
+        last_name = data['last_name'] if 'last_name' in data else existing['last_name']
+        email = data['email'] if 'email' in data else existing['email']
+
+        # change password
+        if 'password' in data:
+            password = hashlib.sha256(data['password'] + existing['salt']).hexdigest()
+        else:
+            password = existing['password']
+        user_type = data['type'] if 'type' in data else existing['type']
+        points = data['points'] if 'points' in data else existing['points']
+        streak = data['streak'] if 'streak' in data else existing['streak']
+        updated_user = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'password': password,
+            'type': user_type,
+            'points': points,
+            'streak': streak,
+        }
+        updated = db.users.update_one({
+            '_id': ObjectId(user_id)
+        }, {'$set': updated_user})
+
+        if updated.acknowledged:
+            return dumps(_serialize(db.users.find_one({'_id': ObjectId(user_id)})))
+        else:
+            return {'reason': 'db failed to update user object'}, 500
+
+
 
 class Medication(Resource):
     def post(self, user_id=None):
