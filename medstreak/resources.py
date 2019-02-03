@@ -223,7 +223,7 @@ class Friends(Resource):
                 user_friends = set(user['friends'])
                 for f in data['friends']:
                     find_friend = db.users.find_one({'_id': ObjectId(f)})
-                    if find_friend:
+                    if find_friend and f != user_id:
                         # add friend to user friend set
                         user_friends.add(f)
                         # add user to friend's friend set
