@@ -4,6 +4,7 @@ from bson.json_util import dumps
 from database import getDB
 import hashlib
 import bcrypt
+import uuid
 
 
 class Login(Resource):
@@ -74,8 +75,31 @@ class User(Resource):
         if response.acknowledged:
             return new_user, 200
         else:
-            return {'reason': 'invalid data'}, 404
+            return {'reason': 'Invalid data'}, 404
 
 
 class Medication(Resource):
+    def post(self, user_id=None):
+        if not user_id:
+            return {'reason': 'Invalid user'}, 404
+        db = getDB()
+        data = request.get_json()
+        med_name = data['name']
+        med_instr = data['instructions']
+        schedule = data['schedule']
+        adherence = data['adherence']
+        med_id = uuid.uuid4()
+        # TODO: Create Medication class
+        medication = Medication(med_id, med_name, med_instr, schedule, adherence)
+        db.medications.insert_one({'med_id': med_id, 'medication': medication})
+        return medication
+
+    def put(self, med_id=None):
+        if not med_id:
+            return {'reason': 'Med_id not provided'}, 404
+        db = getDB()
+        data = request.get_json()
+        adherence = data.get
+
+class Friends(Resource):
     pass
