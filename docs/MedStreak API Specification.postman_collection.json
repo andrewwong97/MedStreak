@@ -1,0 +1,107 @@
+{
+	"info": {
+		"_postman_id": "4f0a1e69-d07a-4133-8f9d-1f64f85bbb6d",
+		"name": "MedStreak API Specification",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"item": [
+				{
+					"name": "Successful",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "/user",
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Called when the user clicks on *Login*. First, the server finds the User with the specified login information and finds the corresponding `id`, for the User (Java includes a class for generating UUIDs). The server returns the `id` as plain text.\n\nThe client holds on to the `id` and provides it in subsequent requests."
+		},
+		{
+			"name": "Sign Up",
+			"item": [
+				{
+					"name": "Successful",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "/user",
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Called when the user clicks on **Sign Up**. The server creates a new User and stores the account information in the database. The account information is passed as a JSON object: `{\"first_name\": \"John\", \"last_name\": \"Doe\", \"email\": \"jdoe1.@jhu.edu\", \"password\": \"password\", \"type\": \"patient\", \"medications\": \"[id1, id2, id3]\"}`"
+		},
+		{
+			"name": "Get User",
+			"item": [
+				{
+					"name": "Successful",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "/user/{{id}}",
+							"path": [
+								"user",
+								"{{id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "The server finds the User matching the `id`. The server returns the user information as a JSON object:\n\n```\n{\n\t\"first_name\": \"John\", \n\t\"last_name\": \"Doe\", \n\t\"email\": \"jdoe1.@jhu.edu\", \n\t\"password\": \"password\", \n\t\"type\": \"patient\",\n\t\"points\": \"num_points\",\n\t\"streak\": \"num_streaks\",\n\t\"medications\": \"[id1, id2, id3]\",\n\t\"friends\": \"[id1, id2, id3]\"\n}\n```"
+		},
+		{
+			"name": "Update Account Information",
+			"item": [
+				{
+					"name": "Successful",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "/user/{{id}}",
+							"path": [
+								"user",
+								"{{id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Modifies the account information of the User identified by `id` to match the provided information.\n\nThe new account information if provided in the HTTP Request Body as a JSON object:\n\n```\n{\n\t\"first_name\": \"John\", \n\t\"last_name\": \"Doe\", \n\t\"email\": \"jdoe1.@jhu.edu\", \n\t\"password\": \"password\", \n\t\"type\": \"patient\",\n\t\"medications\": \"[id1, id2, id3]\",\n\t\"friends\": \"[id1, id2, id3]\"\n}\n```"
+		}
+	]
+}
