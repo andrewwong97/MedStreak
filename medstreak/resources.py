@@ -80,6 +80,10 @@ class User(Resource):
 
 class Medication(Resource):
     def post(self, user_id=None):
+        """
+        Create medication and add it to a user’s list of medications
+        POST  /api/medications/{user id}
+        """
         if not user_id:
             return {'reason': 'Invalid user'}, 404
         db = getDB()
@@ -89,17 +93,33 @@ class Medication(Resource):
         schedule = data['schedule']
         adherence = data['adherence']
         med_id = uuid.uuid4()
-        # TODO: Create Medication class
-        medication = Medication(med_id, med_name, med_instr, schedule, adherence)
-        db.medications.insert_one({'med_id': med_id, 'medication': medication})
-        return medication
+        medication = {
+            'med_id': med_id,
+            'med_name': med_name,
+            'med_instr': med_instr,
+            'schedule': schedule,
+            'adherence': adherence
+        }
+        response = db.medications.insert_one(medication)
+        if response.acknowledged:
+            return medication, 200
+        else:
+            return {'reason': 'Invalid data'}, 404
 
     def put(self, med_id=None):
+        """
+        Update adherence table for a medication
+        PUT /api/medications/{med id}
+        """
         if not med_id:
             return {'reason': 'Med_id not provided'}, 404
         db = getDB()
         data = request.get_json()
-        adherence = data.get
+        adherence = data['adherence']
+        medication = db.medications.find_one_and_update({'med_id': med_id}, {'$set': {'adherence': adherence}})
+        if not medication:
+            return {'reason': 'Invalid med id'}, 400
+        return medication, 200
 
 class Friends(Resource):
     pass
