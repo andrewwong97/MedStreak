@@ -144,4 +144,27 @@ class Medication(Resource):
         return medication, 200
 
 class Friends(Resource):
-    pass
+    def get(self, user_id=None):
+        """
+        Get a list of users friends
+        GET /api/user/{user id}/friends
+        """
+        if not user_id:
+            return {'reason': 'Invalid user'}, 404
+        db = getDB()
+        data = request.get_json()
+
+
+    def post(self, user_id=None):
+        """
+        Add one or more friends to a user’s network, also add the user to each friend’s network
+        POST /api/user/{user id}/friends
+        """
+        pass
+
+    def delete(self, user_id=None, friend_user_id=None):
+        """
+        Remove user from friend’s network and friend from user’s network
+        DELETE /api/user/{user id}/friends/{friend user id}
+        """
+        pass
